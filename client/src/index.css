@@ -1,11 +1,11 @@
 :root {
-  --bg-color: #121212;
-  --card-bg: #1e1e1e;
-  --primary: #bb86fc;
-  --secondary: #03dac6;
+  --bg-color: #002800;
+  --card-bg: #003800;
+  --primary: #4ade80; /* Brighter green for accents */
+  --secondary: #22c55e;
   --text-main: #ffffff;
-  --text-muted: #b0b0b0;
-  --danger: #cf6679;
+  --text-muted: #86efac;
+  --danger: #ef4444;
 }
 
 body {
@@ -36,6 +36,7 @@ body {
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.3);
   margin-bottom: 15px;
+  border: 1px solid #004d00;
 }
 
 .btn {
@@ -48,29 +49,37 @@ body {
   cursor: pointer;
   margin-top: 10px;
   transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btn:active { opacity: 0.8; }
-.btn-primary { background: var(--primary); color: #000; }
-.btn-secondary { background: var(--secondary); color: #000; }
+.btn-primary { background: var(--primary); color: #002800; }
+.btn-secondary { background: var(--secondary); color: #002800; }
 .btn-danger { background: var(--danger); color: #fff; }
 
 input {
   width: 100%;
   padding: 12px;
   margin: 8px 0;
-  background: #2c2c2c;
-  border: 1px solid #444;
+  background: #001a00;
+  border: 1px solid #004d00;
   border-radius: 8px;
   color: white;
   box-sizing: border-box;
+}
+
+input:focus {
+    outline: 2px solid var(--primary);
 }
 
 /* Call Modal Overlay */
 .call-modal {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.9);
+  background: rgba(0,20,0,0.95);
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -83,24 +92,26 @@ input {
   flex-direction: column;
   gap: 10px;
   width: 100%;
-  height: 80%;
+  height: 100%;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
 video {
   width: 100%;
-  max-width: 400px;
-  border-radius: 12px;
-  background: #000;
+  height: 100%;
   object-fit: cover;
 }
 
 .floating-controls {
   position: absolute;
-  bottom: 30px;
+  bottom: 40px;
   display: flex;
   gap: 20px;
+  background: rgba(0,0,0,0.5);
+  padding: 15px;
+  border-radius: 30px;
 }
 
 .control-btn {

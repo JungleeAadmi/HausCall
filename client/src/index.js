@@ -1,12 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+
+// --- POLYFILLS FOR SIMPLE-PEER (CRITICAL FIX) ---
+import * as process from 'process';
+window.global = window;
+window.process = process;
+window.Buffer = require('buffer').Buffer;
+// ------------------------------------------------
+
 import './index.css';
 import App from './App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  // React.StrictMode is good for dev, but can cause double-renders in effects
-  // We keep it on to catch bugs early.
   <React.StrictMode>
     <App />
   </React.StrictMode>
