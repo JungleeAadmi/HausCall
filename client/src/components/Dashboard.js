@@ -20,7 +20,6 @@ const Dashboard = () => {
         deleteConfirm: ''
     });
 
-    // Helper: Logout and Redirect
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -54,14 +53,12 @@ const Dashboard = () => {
                 ntfyServer: settingsForm.ntfyServer,
                 ntfyTopic: settingsForm.ntfyTopic,
             };
-            // Only send password if user typed something
             if(settingsForm.password && settingsForm.password.trim().length > 0) {
                 payload.password = settingsForm.password;
             }
 
             const res = await axios.put(`${apiBase}/api/auth/update`, payload, config);
             
-            // Update local storage
             const updatedUser = { ...user, ...res.data.user };
             localStorage.setItem('user', JSON.stringify(updatedUser));
             setUser(updatedUser);
@@ -70,7 +67,6 @@ const Dashboard = () => {
             setSettingsForm(prev => ({...prev, password: ''}));
         } catch (err) {
             console.error(err);
-            // CRITICAL FIX: If token is invalid (DB Reset), logout immediately
             if (err.response && (err.response.status === 401 || err.response.status === 403)) {
                 alert("Session expired. Logging you out to refresh.");
                 handleLogout();
@@ -86,6 +82,7 @@ const Dashboard = () => {
             alert("Test Notification Sent! Check your device.");
         } catch (err) {
             if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+                alert("Session expired.");
                 handleLogout();
             } else {
                 alert("Failed to send test notification.");
@@ -110,36 +107,23 @@ const Dashboard = () => {
         <div className="container" style={{ justifyContent: 'flex-start' }}>
             <CallModal />
 
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <div style={{
-                        background: '#15803d', 
-                        width: '48px', 
-                        height: '48px', 
-                        borderRadius: '14px', 
-                        display:'flex', 
-                        alignItems:'center', 
-                        justifyContent:'center',
-                        fontSize: '1.4rem',
-                        fontWeight: 'bold',
-                        color: 'white',
-                        boxShadow: '0 4px 15px rgba(21, 128, 61, 0.4)'
-                    }}>
+            {/* --- FIXED HEADER STRUCTURE --- */}
+            <div className="header-row">
+                <div className="user-profile">
+                    <div className="avatar">
                         {user.name.charAt(0).toUpperCase()}
                     </div>
-                    <div>
-                        <h2 style={{ margin: 0, fontSize: '1.2rem', textAlign:'left' }}>{user.name}</h2>
+                    <div className="user-info">
+                        <h2>{user.name}</h2>
                         <small>@{user.username}</small>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '15px' }}>
-                    <FaCog size={22} style={{ cursor: 'pointer', color: '#9ca3af' }} onClick={() => setShowSettings(true)} />
-                    <FaSignOutAlt size={22} style={{ cursor: 'pointer', color: '#ef4444' }} onClick={handleLogout} />
+                <div className="header-actions">
+                    <FaCog size={24} style={{ cursor: 'pointer', color: '#9ca3af' }} onClick={() => setShowSettings(true)} />
+                    <FaSignOutAlt size={24} style={{ cursor: 'pointer', color: '#ef4444' }} onClick={handleLogout} />
                 </div>
             </div>
 
-            {/* Main Content */}
             <FriendList currentUser={user} />
 
             {/* Settings Modal */}
@@ -163,7 +147,7 @@ const Dashboard = () => {
 
                             <hr style={{ borderColor: '#333', margin: '24px 0' }} />
 
-                            <label>New Password (Optional)</label>
+                            <label>New Password</label>
                             <input type="password" placeholder="Leave blank to keep current" value={settingsForm.password} onChange={e => setSettingsForm({...settingsForm, password: e.target.value})} />
                             
                             <label style={{color: '#ef4444', marginTop: '24px'}}>Delete Account</label>

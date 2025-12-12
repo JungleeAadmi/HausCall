@@ -4,7 +4,6 @@
   --primary: #22c55e;
   --primary-dark: #15803d;
   --danger: #ef4444;
-  /* Diagonal Gradient: Black to Deep Green */
   --bg-gradient: linear-gradient(135deg, #000000 0%, #001a00 100%);
   --glass-bg: rgba(20, 20, 20, 0.85);
   --glass-border: rgba(255, 255, 255, 0.1);
@@ -23,24 +22,21 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Layout Container */
 .container {
   width: 100%;
   min-height: 100vh;
   padding: 16px;
-  padding-bottom: 100px; /* Space for bottom nav */
+  padding-bottom: 100px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center content horizontally */
+  align-items: center;
 }
 
-/* Center the login/register screens vertically */
 .container.center-all {
   justify-content: center;
 }
 
-/* Desktop: Limit width */
 @media (min-width: 768px) {
   .container {
     max-width: 600px;
@@ -49,10 +45,63 @@ body {
   }
 }
 
-/* Professional Glass Card */
+/* --- HEADER FIXES --- */
+.header-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1; /* Takes available space */
+  min-width: 0; /* Allows text truncation */
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  background: #15803d;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0; /* Prevents avatar squishing */
+  box-shadow: 0 4px 15px rgba(21, 128, 61, 0.4);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Hides overflow text */
+}
+
+.user-info h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Adds ... if name is too long */
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  margin-left: 10px;
+  flex-shrink: 0; /* Icons won't shrink */
+}
+
+/* --- CARDS & INPUTS --- */
 .card {
   width: 100%;
-  max-width: 420px; /* Prevent it from getting too wide */
+  max-width: 450px;
   box-sizing: border-box;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -61,21 +110,6 @@ body {
   padding: 24px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   margin-bottom: 16px;
-}
-
-h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: white; text-align: center; }
-h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
-small { color: var(--text-muted); }
-
-/* Inputs */
-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-  margin-top: 16px;
 }
 
 input, select {
@@ -89,14 +123,21 @@ input, select {
   box-sizing: border-box;
   outline: none;
   transition: border-color 0.2s;
+  margin-bottom: 10px;
+  margin-top: 5px;
 }
 
-input:focus {
-  border-color: var(--primary);
-  background: #000;
+label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 10px;
+  display: block;
 }
 
-/* Buttons */
+input:focus { border-color: var(--primary); background: #000; }
+
 .btn {
   width: 100%;
   padding: 14px;
@@ -105,7 +146,7 @@ input:focus {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 24px;
+  margin-top: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -113,14 +154,10 @@ input:focus {
 }
 .btn:active { transform: scale(0.98); }
 
-.btn-primary { 
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: #000;
-}
+.btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #000; }
 .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
 .btn-secondary { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); }
 
-/* Icon Buttons */
 .btn-icon {
   width: 44px;
   height: 44px;
@@ -133,7 +170,6 @@ input:focus {
   cursor: pointer;
 }
 
-/* Bottom Nav */
 .bottom-nav {
   position: fixed;
   bottom: 20px;
@@ -152,27 +188,8 @@ input:focus {
   box-shadow: 0 10px 40px rgba(0,0,0,0.6);
 }
 
-.nav-item {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-}
-
+.nav-item { background: none; border: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; font-size: 0.7rem; }
 .nav-item.active { color: var(--primary); }
 .nav-icon { font-size: 1.4rem; }
 
-/* Call Modal */
-.call-modal {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: #000;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-}
+.call-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; }

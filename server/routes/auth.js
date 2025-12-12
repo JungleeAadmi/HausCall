@@ -22,7 +22,7 @@ router.post('/register', async (req, res) => {
         });
 
         const payload = { user: { id: user.id } };
-        jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '365d' }, (err, token) => {
+        jwt.sign(payload, process.env.JWT_SECRET || 'secret_key_123', { expiresIn: '365d' }, (err, token) => {
             if (err) throw err;
             res.json({ token, user });
         });
@@ -40,7 +40,7 @@ router.post('/login', async (req, res) => {
         if (!isMatch) return res.status(400).json({ msg: 'Invalid Credentials' });
 
         const payload = { user: { id: user.id } };
-        jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '365d' }, (err, token) => {
+        jwt.sign(payload, process.env.JWT_SECRET || 'secret_key_123', { expiresIn: '365d' }, (err, token) => {
             if (err) throw err;
             res.json({ token, user });
         });
@@ -51,22 +51,25 @@ router.post('/login', async (req, res) => {
 router.put('/update', auth, async (req, res) => {
     const { ntfyTopic, ntfyServer, password } = req.body;
     try {
+        // Debug Log
+        console.log(`📝 Updating settings for user: ${req.user.id}`);
+        
         const user = await User.findByPk(req.user.id);
-        if (!user) return res.status(404).json({ msg: 'User not found' });
+        if (!user) {
+            console.log("❌ Update Failed: User not found in DB");
+            return res.status(404).json({ msg: 'User not found' });
+        }
 
-        // Update Ntfy Settings
         if (ntfyTopic !== undefined) user.ntfyTopic = ntfyTopic;
         if (ntfyServer !== undefined) user.ntfyServer = ntfyServer;
         
-        // Update Password ONLY if provided and valid
-        if (password && typeof password === 'string' && password.trim().length > 0) {
+        if (password && password.trim().length > 0) {
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash(password, salt);
         }
         
         await user.save();
         
-        // Return user without password
         const userObj = user.toJSON();
         delete userObj.password;
         
@@ -77,23 +80,20 @@ router.put('/update', auth, async (req, res) => {
     }
 });
 
-// Delete Account
 router.delete('/delete', auth, async (req, res) => {
     try {
         await User.destroy({ where: { id: req.user.id } });
         res.json({ msg: 'Account Deleted' });
-    } catch (err) {
-        res.status(500).send('Server Error');
-    }
+    } catch (err) { res.status(500).send('Server Error'); }
 });
 
-// Test Ntfy
 router.post('/test-ntfy', auth, async (req, res) => {
     const { sendCallNotification } = require('../utils/ntfy');
     try {
         const user = await User.findByPk(req.user.id);
         if (!user) return res.status(404).json({ msg: 'User not found' });
         
+        console.log(`🔔 Sending Test Ntfy for user: ${user.username}`);
         await sendCallNotification(user.ntfyTopic, "Test", "test", user.ntfyServer);
         res.json({ msg: 'Notification Sent' });
     } catch (err) {
