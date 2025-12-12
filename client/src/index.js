@@ -1,15 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import * as process from 'process';
+import './index.css';
+import App from './App';
 
 // --- POLYFILLS FOR SIMPLE-PEER (CRITICAL FIX) ---
-import * as process from 'process';
+// Note: Imports must be above this block.
+// Assignments must be below imports but before App rendering.
 window.global = window;
 window.process = process;
 window.Buffer = require('buffer').Buffer;
 // ------------------------------------------------
-
-import './index.css';
-import App from './App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
