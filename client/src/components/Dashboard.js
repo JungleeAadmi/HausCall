@@ -20,6 +20,7 @@ const Dashboard = () => {
         deleteConfirm: ''
     });
 
+    // Helper: Logout and Redirect
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -28,7 +29,10 @@ const Dashboard = () => {
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
-        if (!storedUser) { navigate('/'); return; }
+        if (!storedUser) { 
+            navigate('/'); 
+            return; 
+        }
         
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
@@ -50,16 +54,19 @@ const Dashboard = () => {
                 ntfyServer: settingsForm.ntfyServer,
                 ntfyTopic: settingsForm.ntfyTopic,
             };
+            // Only send password if user typed something
             if(settingsForm.password && settingsForm.password.trim().length > 0) {
                 payload.password = settingsForm.password;
             }
 
             const res = await axios.put(`${apiBase}/api/auth/update`, payload, config);
             
+            // Update local storage
             const updatedUser = { ...user, ...res.data.user };
             localStorage.setItem('user', JSON.stringify(updatedUser));
             setUser(updatedUser);
-            alert("Settings Saved!");
+            
+            alert("Settings Saved Successfully!");
             setSettingsForm(prev => ({...prev, password: ''}));
         } catch (err) {
             console.error(err);
@@ -76,7 +83,7 @@ const Dashboard = () => {
     const testNtfy = async () => {
         try {
             await axios.post(`${apiBase}/api/auth/test-ntfy`, {}, config);
-            alert("Test Notification Sent!");
+            alert("Test Notification Sent! Check your device.");
         } catch (err) {
             if (err.response && (err.response.status === 401 || err.response.status === 403)) {
                 handleLogout();
@@ -108,9 +115,15 @@ const Dashboard = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <div style={{
                         background: '#15803d', 
-                        width: '48px', height: '48px', borderRadius: '14px', 
-                        display:'flex', alignItems:'center', justifyContent:'center',
-                        fontSize: '1.4rem', fontWeight: 'bold', color: 'white',
+                        width: '48px', 
+                        height: '48px', 
+                        borderRadius: '14px', 
+                        display:'flex', 
+                        alignItems:'center', 
+                        justifyContent:'center',
+                        fontSize: '1.4rem',
+                        fontWeight: 'bold',
+                        color: 'white',
                         boxShadow: '0 4px 15px rgba(21, 128, 61, 0.4)'
                     }}>
                         {user.name.charAt(0).toUpperCase()}

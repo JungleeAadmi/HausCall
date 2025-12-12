@@ -37,5 +37,5 @@ socketHandler(io);
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`✨ SERVER CODE UPDATED: v3.0 (Search & GUI Fixes Applied)`);
+    console.log(`✨ SERVER CODE UPDATED: v4.0 - Search & Ntfy Fixes Active`);
 });

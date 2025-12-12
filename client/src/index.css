@@ -4,8 +4,9 @@
   --primary: #22c55e;
   --primary-dark: #15803d;
   --danger: #ef4444;
+  /* Diagonal Gradient: Black to Deep Green */
   --bg-gradient: linear-gradient(135deg, #000000 0%, #001a00 100%);
-  --glass-bg: rgba(20, 20, 20, 0.7);
+  --glass-bg: rgba(20, 20, 20, 0.85);
   --glass-border: rgba(255, 255, 255, 0.1);
   --text-main: #ffffff;
   --text-muted: #9ca3af;
@@ -22,7 +23,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* --- Layout --- */
+/* Layout Container */
 .container {
   width: 100%;
   min-height: 100vh;
@@ -48,10 +49,10 @@ body {
   }
 }
 
-/* --- Components --- */
+/* Professional Glass Card */
 .card {
   width: 100%;
-  max-width: 450px; /* Prevent it from getting too wide on tablets */
+  max-width: 420px; /* Prevent it from getting too wide */
   box-sizing: border-box;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
