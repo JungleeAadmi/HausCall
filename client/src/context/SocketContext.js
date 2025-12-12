@@ -8,7 +8,6 @@ const socketURL = process.env.NODE_ENV === 'production'
   ? '/' 
   : `http://${window.location.hostname}:5000`;
 
-// Auto-connect, robust reconnection
 const socket = io(socketURL, {
     reconnection: true,
     reconnectionAttempts: Infinity,
@@ -28,12 +27,12 @@ const SocketContextProvider = ({ children }) => {
   const userVideo = useRef();
   const connectionRef = useRef();
 
+  // STUN servers are critical for video to work over the internet/tailscale
   const iceServers = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:global.stun.twilio.com:3478' }
   ];
 
-  // Helper: Request Camera/Mic ONLY when needed
   const getMedia = async () => {
     try {
         const currentStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -44,23 +43,12 @@ const SocketContextProvider = ({ children }) => {
         return currentStream;
     } catch (err) {
         console.error("Failed to get media:", err);
-        alert("Camera permission denied. Cannot start call.");
+        alert("Camera access denied. Please check your browser permissions.");
         return null;
     }
   };
 
   useEffect(() => {
-    // 1. Socket Setup
-    socket.on('connect', () => {
-        console.log("Socket Connected:", socket.id);
-        // Persistence Fix: If we have a user in storage, re-register immediately
-        const storedUser = localStorage.getItem('user');
-        if(storedUser) {
-            const u = JSON.parse(storedUser);
-            socket.emit('register', u.id);
-        }
-    });
-
     socket.on('me', (id) => setMe(id));
 
     socket.on('callUser', ({ from, name: callerName, signal, type }) => {
@@ -68,33 +56,18 @@ const SocketContextProvider = ({ children }) => {
       setIsReceivingCall(true);
     });
 
-    // 2. Re-register on window focus (fixes minimize logout issue)
-    const handleVisibilityChange = () => {
-        if (document.visibilityState === 'visible') {
-            if (!socket.connected) socket.connect();
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                const u = JSON.parse(storedUser);
-                socket.emit('register', u.id);
-            }
-        }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    socket.on('callEnded', () => {
+        leaveCall();
+    });
 
     return () => {
-      socket.off('connect');
-      socket.off('me');
-      socket.off('callUser');
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+        socket.off('me');
+        socket.off('callUser');
+        socket.off('callEnded');
     };
   }, []);
 
-  const registerUser = (userId) => {
-    if(userId) socket.emit('register', userId);
-  };
-
   const answerCall = async () => {
-    // Ask for camera NOW
     const currentStream = await getMedia();
     if(!currentStream) return;
 
@@ -123,7 +96,6 @@ const SocketContextProvider = ({ children }) => {
   };
 
   const callUser = async (id, type = 'video') => {
-    // Ask for camera NOW
     const currentStream = await getMedia();
     if(!currentStream) return;
 
@@ -139,7 +111,7 @@ const SocketContextProvider = ({ children }) => {
         userToCall: id, 
         signal: data, 
         from: me, 
-        name,
+        name: name, // Uses the state 'name' which we will set in Dashboard
         type
       });
     });
@@ -161,11 +133,17 @@ const SocketContextProvider = ({ children }) => {
   const leaveCall = () => {
     setCallEnded(true);
     if (connectionRef.current) connectionRef.current.destroy();
-    // Stop local stream tracks to turn off camera light
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-    }
-    window.location.reload();
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    setCall({});
+    setIsReceivingCall(false);
+    setCallAccepted(false);
+    
+    // Slight delay before reload to ensure socket events clear
+    setTimeout(() => window.location.reload(), 100);
+  };
+
+  const registerUser = (userId) => {
+      if(userId) socket.emit('register', userId);
   };
 
   const toggleMute = () => {

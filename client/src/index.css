@@ -193,3 +193,20 @@ input:focus { border-color: var(--primary); background: #000; }
 .nav-icon { font-size: 1.4rem; }
 
 .call-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; }
+
+/* ... Keep all existing CSS ... */
+
+/* Add specific Z-Index handling */
+.call-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #000;
+  z-index: 9999; /* Highest priority */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure video elements don't get captured by touches weirdly */
+video {
+  pointer-events: none;
+}

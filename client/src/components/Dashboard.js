@@ -7,12 +7,11 @@ import CallModal from './CallModal';
 import { FaSignOutAlt, FaCog, FaTrash, FaSave, FaBell } from 'react-icons/fa';
 
 const Dashboard = () => {
-    const { registerUser } = useContext(SocketContext);
+    const { registerUser, setName } = useContext(SocketContext); // Import setName
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [showSettings, setShowSettings] = useState(false);
     
-    // Settings Form State
     const [settingsForm, setSettingsForm] = useState({
         ntfyServer: 'https://ntfy.sh',
         ntfyTopic: '',
@@ -28,13 +27,13 @@ const Dashboard = () => {
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
-        if (!storedUser) { 
-            navigate('/'); 
-            return; 
-        }
+        if (!storedUser) { navigate('/'); return; }
         
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
+        
+        // CRITICAL FIX: Set the name in Context so Calls identify us correctly
+        setName(parsedUser.name);
         registerUser(parsedUser.id);
         
         setSettingsForm(prev => ({
@@ -42,7 +41,7 @@ const Dashboard = () => {
             ntfyServer: parsedUser.ntfyServer || 'https://ntfy.sh',
             ntfyTopic: parsedUser.ntfyTopic || ''
         }));
-    }, [registerUser, navigate]);
+    }, [registerUser, setName, navigate]);
 
     const apiBase = process.env.NODE_ENV === 'production' ? '' : `http://${window.location.hostname}:5000`;
     const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
@@ -63,15 +62,14 @@ const Dashboard = () => {
             localStorage.setItem('user', JSON.stringify(updatedUser));
             setUser(updatedUser);
             
-            alert("Settings Saved Successfully!");
+            alert("Settings Saved!");
             setSettingsForm(prev => ({...prev, password: ''}));
         } catch (err) {
-            console.error(err);
             if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-                alert("Session expired. Logging you out to refresh.");
+                alert("Session expired. Logging out.");
                 handleLogout();
             } else {
-                alert("Failed to save: " + (err.response?.data?.msg || err.message));
+                alert("Failed to save settings.");
             }
         }
     };
@@ -79,48 +77,44 @@ const Dashboard = () => {
     const testNtfy = async () => {
         try {
             await axios.post(`${apiBase}/api/auth/test-ntfy`, {}, config);
-            alert("Test Notification Sent! Check your device.");
+            alert("Notification Sent!");
         } catch (err) {
-            if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-                alert("Session expired.");
-                handleLogout();
-            } else {
-                alert("Failed to send test notification.");
-            }
+            if (err.response && err.response.status === 401) handleLogout();
+            else alert("Failed to send.");
         }
     };
 
     const deleteAccount = async () => {
         if (settingsForm.deleteConfirm === 'DELETE') {
-            try {
-                await axios.delete(`${apiBase}/api/auth/delete`, config);
-                handleLogout();
-            } catch (err) { alert("Failed to delete account"); }
-        } else {
-            alert("Please type DELETE to confirm.");
-        }
+            try { await axios.delete(`${apiBase}/api/auth/delete`, config); handleLogout(); } 
+            catch (err) { alert("Failed to delete."); }
+        } else { alert("Type DELETE to confirm."); }
     };
 
-    if (!user) return <div className="container" style={{justifyContent:'center', alignItems:'center'}}>Loading...</div>;
+    if (!user) return <div className="container center-all">Loading...</div>;
 
     return (
         <div className="container" style={{ justifyContent: 'flex-start' }}>
             <CallModal />
 
-            {/* --- FIXED HEADER STRUCTURE --- */}
-            <div className="header-row">
-                <div className="user-profile">
-                    <div className="avatar">
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <div style={{
+                        background: '#15803d', width: '48px', height: '48px', borderRadius: '14px', 
+                        display:'flex', alignItems:'center', justifyContent:'center', fontSize: '1.4rem', 
+                        fontWeight: 'bold', color: 'white', boxShadow: '0 4px 15px rgba(21, 128, 61, 0.4)'
+                    }}>
                         {user.name.charAt(0).toUpperCase()}
                     </div>
-                    <div className="user-info">
-                        <h2>{user.name}</h2>
+                    <div>
+                        <h2 style={{ margin: 0, fontSize: '1.2rem', textAlign:'left' }}>{user.name}</h2>
                         <small>@{user.username}</small>
                     </div>
                 </div>
-                <div className="header-actions">
-                    <FaCog size={24} style={{ cursor: 'pointer', color: '#9ca3af' }} onClick={() => setShowSettings(true)} />
-                    <FaSignOutAlt size={24} style={{ cursor: 'pointer', color: '#ef4444' }} onClick={handleLogout} />
+                <div style={{ display: 'flex', gap: '15px' }}>
+                    <FaCog size={22} style={{ cursor: 'pointer', color: '#9ca3af' }} onClick={() => setShowSettings(true)} />
+                    <FaSignOutAlt size={22} style={{ cursor: 'pointer', color: '#ef4444' }} onClick={handleLogout} />
                 </div>
             </div>
 
@@ -141,8 +135,8 @@ const Dashboard = () => {
                             <input value={settingsForm.ntfyTopic} onChange={e => setSettingsForm({...settingsForm, ntfyTopic: e.target.value})} />
                             
                             <div style={{display: 'flex', gap: '12px', marginTop: '15px'}}>
-                                <button className="btn btn-primary" onClick={saveSettings} style={{margin:0}}><FaSave/> Save</button>
-                                <button className="btn btn-secondary" onClick={testNtfy} style={{margin:0}}><FaBell/> Test</button>
+                                <button className="btn btn-primary" onClick={saveSettings} style={{margin:0, flex: 1}}><FaSave/> Save</button>
+                                <button className="btn btn-secondary" onClick={testNtfy} style={{margin:0, flex: 1}}><FaBell/> Test</button>
                             </div>
 
                             <hr style={{ borderColor: '#333', margin: '24px 0' }} />
