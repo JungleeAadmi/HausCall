@@ -28,8 +28,8 @@ const Login = () => {
     };
 
     return (
-        <div className="container" style={{justifyContent: 'center'}}>
-            <div className="card" style={{ maxWidth: '400px', margin: '0 auto', width: '100%' }}>
+        <div className="container center-all">
+            <div className="card" style={{ maxWidth: '400px' }}>
                 <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <div style={{ 
                         background: 'rgba(255,255,255,0.05)', 
@@ -51,7 +51,7 @@ const Login = () => {
                     </div>
                 </div>
 
-                <h2 style={{ textAlign: 'center' }}>HausCall Login</h2>
+                <h2 style={{ textAlign: 'center' }}>Welcome Back</h2>
                 {error && <p style={{ color: '#ef4444', textAlign: 'center', fontSize: '0.9rem', background: 'rgba(239, 68, 68, 0.1)', padding: '10px', borderRadius: '8px' }}>{error}</p>}
                 
                 <form onSubmit={onSubmit}>
