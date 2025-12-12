@@ -30,7 +30,7 @@ const FriendList = ({ currentUser }) => {
         try {
             const res = await axios.get(`${apiBase}/api/friends/search?query=${searchQuery}`, config);
             setSearchResults(res.data);
-            if(res.data.length === 0) alert("No users found. Try a different username.");
+            if(res.data.length === 0) alert("No users found. Try searching by name or username.");
         } catch (err) { console.error(err); }
     };
 
@@ -58,61 +58,70 @@ const FriendList = ({ currentUser }) => {
                 {/* FRIENDS TAB */}
                 {activeTab === 'friends' && (
                     <div>
-                        <h3 style={{ borderBottom: '1px solid #14532d', paddingBottom: '10px' }}>Friends</h3>
+                        <h3>Friends</h3>
                         {friends.length === 0 && <p style={{ textAlign: 'center', color: '#666', marginTop: '50px' }}>No friends yet.<br/>Go to 'Add' to find people.</p>}
-                        {friends.map(friend => (
-                            <div key={friend.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px' }}>
-                                <div style={{display:'flex', alignItems:'center', gap: '15px'}}>
-                                    <div style={{width: '40px', height: '40px', background: '#14532d', borderRadius: '50%', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', fontSize:'1.2rem'}}>
-                                        {friend.name.charAt(0).toUpperCase()}
+                        
+                        <div className="grid-view">
+                            {friends.map(friend => (
+                                <div key={friend.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px' }}>
+                                    <div style={{display:'flex', alignItems:'center', gap: '15px'}}>
+                                        <div style={{width: '40px', height: '40px', background: '#14532d', borderRadius: '50%', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', fontSize:'1.2rem'}}>
+                                            {friend.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <h4 style={{ margin: 0 }}>{friend.name}</h4>
+                                            <small style={{ color: '#888' }}>@{friend.username}</small>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 style={{ margin: 0 }}>{friend.name}</h4>
-                                        <small style={{ color: '#888' }}>@{friend.username}</small>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <button onClick={() => callUser(friend.id, 'audio')} className="btn-icon" style={{ background: '#222', color: '#ccc' }}>
+                                            <FaPhone />
+                                        </button>
+                                        <button onClick={() => callUser(friend.id, 'video')} className="btn-icon" style={{ background: 'var(--primary)', color: 'white' }}>
+                                            <FaVideo />
+                                        </button>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: '15px' }}>
-                                    <button onClick={() => callUser(friend.id, 'audio')} style={{ background: '#333', border: 'none', color: 'white', width: '45px', height: '45px', borderRadius: '50%', cursor: 'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                                        <FaPhone />
-                                    </button>
-                                    <button onClick={() => callUser(friend.id, 'video')} style={{ background: 'var(--primary)', border: 'none', color: 'white', width: '45px', height: '45px', borderRadius: '50%', cursor: 'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                                        <FaVideo />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 )}
 
                 {/* PENDING TAB */}
                 {activeTab === 'pending' && (
                     <div>
-                        <h3 style={{ borderBottom: '1px solid #14532d', paddingBottom: '10px' }}>Pending Requests</h3>
+                        <h3>Pending Requests</h3>
                         {requests.length === 0 && <p style={{ textAlign: 'center', color: '#666', marginTop: '50px' }}>No pending requests.</p>}
-                        {requests.map(req => (
-                            <div key={req.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                 <div>
-                                    <h4 style={{ margin: 0 }}>{req.name}</h4>
-                                    <small style={{ color: '#888' }}>@{req.username}</small>
+                        
+                        <div className="grid-view">
+                            {requests.map(req => (
+                                <div key={req.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                     <div>
+                                        <h4 style={{ margin: 0 }}>{req.name}</h4>
+                                        <small style={{ color: '#888' }}>@{req.username}</small>
+                                    </div>
+                                    <button className="btn-secondary" style={{ width: 'auto', padding: '8px 15px' }} onClick={() => acceptRequest(req.id)}>
+                                        Accept <FaCheck />
+                                    </button>
                                 </div>
-                                <button className="btn-secondary" style={{ width: 'auto', padding: '8px 15px' }} onClick={() => acceptRequest(req.id)}>
-                                    Accept <FaCheck />
-                                </button>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 )}
 
                 {/* SEARCH TAB */}
                 {activeTab === 'search' && (
                     <div>
-                         <h3 style={{ borderBottom: '1px solid #14532d', paddingBottom: '10px' }}>Add Friends</h3>
+                         <h3>Add Friends</h3>
+                         {/* UNIFORM SEARCH BAR */}
                         <form onSubmit={handleSearch} style={{ display: 'flex', gap: '10px' }}>
-                            <input type="text" placeholder="Search Username..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                            <button type="submit" className="btn-primary" style={{ width: '60px', marginTop: '10px' }}><FaSearch/></button>
+                            <input type="text" placeholder="Search by Name or Username..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                            <button type="submit" className="btn-icon" style={{ background: 'var(--primary)', color: 'white', marginTop: '10px' }}>
+                                <FaSearch/>
+                            </button>
                         </form>
                         
-                        <div style={{ marginTop: '20px' }}>
+                        <div className="grid-view" style={{ marginTop: '20px' }}>
                             {searchResults.map(user => (
                                 <div key={user.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div>

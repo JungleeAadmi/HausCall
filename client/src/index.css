@@ -3,9 +3,9 @@
 :root {
   --bg-color: #000a00;
   --card-bg: #051a05;
-  --primary: #1e8e3e; /* Professional Green */
+  --primary: #1e8e3e; 
   --primary-hover: #166534;
-  --danger: #b91c1c;   /* Professional Red */
+  --danger: #b91c1c;   
   --text-main: #ffffff;
   --text-muted: #9ca3af;
   --border-color: #1f2937;
@@ -21,44 +21,51 @@ body {
   overflow-x: hidden;
 }
 
+/* --- RESPONSIVE LAYOUT --- */
 .container {
-  max-width: 480px; /* Mobile focused width like the screenshots */
-  margin: 0 auto;
+  width: 100%;
   padding: 20px;
+  padding-bottom: 90px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Center vertically like login screens */
+  box-sizing: border-box;
 }
 
-/* Professional Card Style (cc-track style) */
+/* Mobile Default */
+@media (max-width: 768px) {
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+}
+
+/* Desktop Expansion */
+@media (min-width: 769px) {
+  .container {
+    max-width: 1000px; /* Wider for PC */
+    margin: 0 auto;
+  }
+  
+  /* Grid Layout for Desktop lists */
+  .grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+}
+
 .card {
-  background: linear-gradient(180deg, rgba(20, 40, 20, 0.9) 0%, rgba(5, 15, 5, 0.95) 100%);
+  background: linear-gradient(180deg, rgba(20, 40, 20, 0.95) 0%, rgba(5, 15, 5, 0.98) 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  padding: 32px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+  margin-bottom: 15px;
 }
 
-h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
-  text-align: center;
-  color: white;
-}
-
-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 0.5rem;
-  margin-top: 1rem;
-  letter-spacing: 0.05em;
-}
+h2, h3, h4 { margin: 0; color: white; }
+h3 { margin-bottom: 15px; font-size: 1.2rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
 
 input, select {
   width: 100%;
@@ -71,13 +78,9 @@ input, select {
   box-sizing: border-box;
   transition: all 0.2s;
 }
+input:focus { outline: none; border-color: var(--primary); }
 
-input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(30, 142, 62, 0.2);
-}
-
+/* --- BUTTONS --- */
 .btn {
   width: 100%;
   padding: 16px;
@@ -86,31 +89,29 @@ input:focus {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 24px;
-  transition: transform 0.1s;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
+  transition: transform 0.1s;
 }
-
 .btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--primary); color: white; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-secondary { background: transparent; border: 1px solid #444; color: #ccc; }
 
-.btn-primary {
-  background: var(--primary);
-  color: white;
-}
-
-.btn-danger {
-  background: var(--danger);
-  color: white;
-}
-
-.btn-secondary {
-  background: transparent;
-  border: 1px solid #444;
-  color: #ccc;
-  margin-top: 10px;
+/* Icon Button (Uniform Shape) */
+.btn-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
 }
 
 /* Call Modal */
@@ -131,17 +132,16 @@ input:focus {
   transform: translateX(-50%);
   width: 90%;
   max-width: 400px;
-  background: rgba(20, 30, 20, 0.95);
+  background: rgba(10, 20, 10, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 20px;
   display: flex;
   justify-content: space-around;
   padding: 15px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
   border: 1px solid rgba(255,255,255,0.1);
   z-index: 100;
 }
-
 .nav-item {
   background: none;
   border: none;
@@ -153,11 +153,5 @@ input:focus {
   gap: 4px;
   cursor: pointer;
 }
-
 .nav-item.active { color: var(--primary); }
 .nav-icon { font-size: 1.4rem; }
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--bg-color); }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }

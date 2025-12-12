@@ -5,22 +5,32 @@ const auth = require('../utils/authMiddleware');
 const { Op, Sequelize } = require('sequelize');
 
 // @route   GET api/friends/search
-// @desc    Search for users by username (Case Insensitive)
+// @desc    Search for users by username OR name (Case Insensitive)
 router.get('/search', auth, async (req, res) => {
     try {
         const { query } = req.query;
         if (!query) return res.json([]);
 
-        // Robust Case-Insensitive Search
-        // Matches partial username (e.g., 'dav' finds 'David')
+        const lowerQuery = query.toLowerCase();
+
         const users = await User.findAll({
             where: {
                 [Op.and]: [
-                    Sequelize.where(
-                        Sequelize.fn('lower', Sequelize.col('username')),
-                        { [Op.like]: `%${query.toLowerCase()}%` }
-                    ),
-                    { id: { [Op.ne]: req.user.id } } // Exclude self
+                    { id: { [Op.ne]: req.user.id } }, // Exclude self
+                    {
+                        [Op.or]: [
+                            // Search Username
+                            Sequelize.where(
+                                Sequelize.fn('lower', Sequelize.col('username')),
+                                { [Op.like]: `%${lowerQuery}%` }
+                            ),
+                            // Search Name
+                            Sequelize.where(
+                                Sequelize.fn('lower', Sequelize.col('name')),
+                                { [Op.like]: `%${lowerQuery}%` }
+                            )
+                        ]
+                    }
                 ]
             },
             attributes: ['id', 'name', 'username', 'age', 'gender']
@@ -70,22 +80,18 @@ router.post('/accept', auth, async (req, res) => {
 
         if (!user || !requester) return res.status(404).json({ msg: 'User not found' });
 
+        // Update User
         let userFriends = user.friends;
-        if (!userFriends.includes(requesterId)) {
-            userFriends.push(requesterId);
-            user.friends = userFriends;
-        }
-
-        let userRequests = user.friendRequests;
-        user.friendRequests = userRequests.filter(id => id !== requesterId);
+        if (!userFriends.includes(requesterId)) userFriends.push(requesterId);
+        user.friends = userFriends;
+        user.friendRequests = user.friendRequests.filter(id => id !== requesterId);
         await user.save();
 
+        // Update Requester
         let reqFriends = requester.friends;
-        if (!reqFriends.includes(user.id)) {
-            reqFriends.push(user.id);
-            requester.friends = reqFriends;
-            await requester.save();
-        }
+        if (!reqFriends.includes(user.id)) reqFriends.push(user.id);
+        requester.friends = reqFriends;
+        await requester.save();
 
         res.json({ msg: 'Friend accepted', friend: {
             id: requester.id,
@@ -102,6 +108,8 @@ router.post('/accept', auth, async (req, res) => {
 router.get('/', auth, async (req, res) => {
     try {
         const user = await User.findByPk(req.user.id);
+        if(!user) return res.status(404).json({msg: 'User not found'});
+
         const friends = await User.findAll({
             where: { id: user.friends },
             attributes: ['id', 'name', 'username', 'age', 'gender']

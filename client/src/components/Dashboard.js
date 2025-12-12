@@ -20,6 +20,13 @@ const Dashboard = () => {
         deleteConfirm: ''
     });
 
+    // Helper for Logout
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+    };
+
     useEffect(() => {
         // Persistence: Check localStorage
         const storedUser = localStorage.getItem('user');
@@ -39,14 +46,6 @@ const Dashboard = () => {
         }));
     }, [registerUser, navigate]);
 
-    const handleLogout = () => {
-        // Explicit logout clears storage
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        // Force reload to clear socket state
-        window.location.href = '/';
-    };
-
     const apiBase = process.env.NODE_ENV === 'production' ? '' : `http://${window.location.hostname}:5000`;
     const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
 
@@ -56,7 +55,6 @@ const Dashboard = () => {
                 ntfyServer: settingsForm.ntfyServer,
                 ntfyTopic: settingsForm.ntfyTopic,
             };
-            // Only add password if typed
             if(settingsForm.password.trim()) {
                 payload.password = settingsForm.password;
             }
@@ -70,6 +68,12 @@ const Dashboard = () => {
             setSettingsForm(prev => ({...prev, password: ''}));
         } catch (err) {
             console.error(err);
+            // AUTH FIX: If token is invalid (DB deleted), force logout
+            if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+                alert("Session expired. Please login again.");
+                handleLogout();
+                return;
+            }
             alert("Failed to save settings: " + (err.response?.data?.msg || err.message));
         }
     };
@@ -79,6 +83,11 @@ const Dashboard = () => {
             await axios.post(`${apiBase}/api/auth/test-ntfy`, {}, config);
             alert("Test Notification Sent!");
         } catch (err) {
+            if (err.response && err.response.status === 401) {
+                alert("Session expired.");
+                handleLogout();
+                return;
+            }
             alert("Failed to send test notification.");
         }
     };
@@ -100,8 +109,8 @@ const Dashboard = () => {
         <div className="container" style={{justifyContent:'flex-start', paddingTop: '40px'}}>
             <CallModal />
 
-            {/* Professional Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', padding: '0 10px' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <div style={{
                         background: '#14532d', 
@@ -112,7 +121,8 @@ const Dashboard = () => {
                         alignItems:'center', 
                         justifyContent:'center',
                         fontSize: '1.2rem',
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
+                        color: 'white'
                     }}>
                         {user.name.charAt(0).toUpperCase()}
                     </div>
@@ -134,7 +144,7 @@ const Dashboard = () => {
             {showSettings && (
                 <div className="call-modal" style={{ background: 'rgba(0,0,0,0.9)' }}>
                     <div className="container" style={{justifyContent: 'center'}}>
-                        <div className="card" style={{ position: 'relative' }}>
+                        <div className="card" style={{ position: 'relative', maxWidth: '400px', margin: '0 auto' }}>
                             <h2 style={{marginTop: 0, fontSize: '1.2rem'}}>Settings</h2>
                             <button onClick={() => setShowSettings(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: '#666', fontSize: '1.5rem', cursor:'pointer' }}>✕</button>
 
