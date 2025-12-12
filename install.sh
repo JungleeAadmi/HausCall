@@ -88,6 +88,10 @@ systemctl daemon-reload
 systemctl enable $SERVICE_NAME
 systemctl restart $SERVICE_NAME
 
+# Detect IP Address
+IP_ADDR=$(hostname -I | awk '{print $1}')
+
 echo "=========================================="
-echo "   HausCall is live!"
+echo "   HausCall Installation Complete!"
+echo "   Access it at: http://$IP_ADDR:5000"
 echo "=========================================="
