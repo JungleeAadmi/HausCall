@@ -20,7 +20,6 @@ const Dashboard = () => {
         deleteConfirm: ''
     });
 
-    // Helper: Logout and Redirect
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -29,10 +28,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
-        if (!storedUser) { 
-            navigate('/'); 
-            return; 
-        }
+        if (!storedUser) { navigate('/'); return; }
         
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
@@ -54,25 +50,22 @@ const Dashboard = () => {
                 ntfyServer: settingsForm.ntfyServer,
                 ntfyTopic: settingsForm.ntfyTopic,
             };
-            // Only send password if user typed something
             if(settingsForm.password && settingsForm.password.trim().length > 0) {
                 payload.password = settingsForm.password;
             }
 
             const res = await axios.put(`${apiBase}/api/auth/update`, payload, config);
             
-            // Update local storage
             const updatedUser = { ...user, ...res.data.user };
             localStorage.setItem('user', JSON.stringify(updatedUser));
             setUser(updatedUser);
-            
-            alert("Settings Saved Successfully!");
+            alert("Settings Saved!");
             setSettingsForm(prev => ({...prev, password: ''}));
         } catch (err) {
             console.error(err);
-            // Handle Invalid Token (e.g. DB Reset)
+            // CRITICAL FIX: If token is invalid (DB Reset), logout immediately
             if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-                alert("Session expired or invalid. Logging out.");
+                alert("Session expired. Logging you out to refresh.");
                 handleLogout();
             } else {
                 alert("Failed to save: " + (err.response?.data?.msg || err.message));
@@ -83,10 +76,9 @@ const Dashboard = () => {
     const testNtfy = async () => {
         try {
             await axios.post(`${apiBase}/api/auth/test-ntfy`, {}, config);
-            alert("Test Notification Sent! Check your device.");
+            alert("Test Notification Sent!");
         } catch (err) {
             if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-                alert("Session expired. Logging out.");
                 handleLogout();
             } else {
                 alert("Failed to send test notification.");
@@ -116,22 +108,16 @@ const Dashboard = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <div style={{
                         background: '#15803d', 
-                        width: '48px', 
-                        height: '48px', 
-                        borderRadius: '14px', 
-                        display:'flex', 
-                        alignItems:'center', 
-                        justifyContent:'center',
-                        fontSize: '1.4rem',
-                        fontWeight: 'bold',
-                        color: 'white',
+                        width: '48px', height: '48px', borderRadius: '14px', 
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        fontSize: '1.4rem', fontWeight: 'bold', color: 'white',
                         boxShadow: '0 4px 15px rgba(21, 128, 61, 0.4)'
                     }}>
                         {user.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
                         <h2 style={{ margin: 0, fontSize: '1.2rem', textAlign:'left' }}>{user.name}</h2>
-                        <small style={{ color: '#9ca3af' }}>@{user.username}</small>
+                        <small>@{user.username}</small>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '15px' }}>
@@ -140,15 +126,15 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Friend List (Main Content) */}
+            {/* Main Content */}
             <FriendList currentUser={user} />
 
             {/* Settings Modal */}
             {showSettings && (
                 <div className="call-modal" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(5px)' }}>
-                    <div className="container" style={{justifyContent: 'center'}}>
-                        <div className="card" style={{ position: 'relative', width: '100%', maxWidth: '400px', margin: '0 auto' }}>
-                            <h2 style={{ marginTop: 0, fontSize: '1.3rem' }}>Settings</h2>
+                    <div className="container center-all">
+                        <div className="card">
+                            <h2 style={{ marginTop: 0 }}>Settings</h2>
                             <button onClick={() => setShowSettings(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: '#666', fontSize: '1.5rem', cursor:'pointer' }}>✕</button>
 
                             <label>Ntfy Server</label>

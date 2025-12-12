@@ -29,29 +29,22 @@ const Login = () => {
 
     return (
         <div className="container center-all">
-            <div className="card" style={{ maxWidth: '400px' }}>
+            <div className="card">
                 <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <div style={{ 
                         background: 'rgba(255,255,255,0.05)', 
-                        width: '80px', 
-                        height: '80px', 
-                        borderRadius: '20px', 
-                        margin: '0 auto', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                        border: '1px solid rgba(255,255,255,0.1)'
+                        width: '80px', height: '80px', borderRadius: '20px', 
+                        margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)'
                     }}>
                         <img 
                             src={process.env.PUBLIC_URL + '/android-chrome-192x192.png'} 
-                            alt="Logo" 
-                            style={{ width: '50px' }}
+                            alt="Logo" style={{ width: '50px' }}
                         />
                     </div>
                 </div>
 
-                <h2 style={{ textAlign: 'center' }}>Welcome Back</h2>
+                <h2>HausCall Login</h2>
                 {error && <p style={{ color: '#ef4444', textAlign: 'center', fontSize: '0.9rem', background: 'rgba(239, 68, 68, 0.1)', padding: '10px', borderRadius: '8px' }}>{error}</p>}
                 
                 <form onSubmit={onSubmit}>

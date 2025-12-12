@@ -4,9 +4,8 @@
   --primary: #22c55e;
   --primary-dark: #15803d;
   --danger: #ef4444;
-  /* Diagonal Gradient: Black to Deep Green */
   --bg-gradient: linear-gradient(135deg, #000000 0%, #001a00 100%);
-  --glass-bg: rgba(20, 20, 20, 0.6);
+  --glass-bg: rgba(20, 20, 20, 0.7);
   --glass-border: rgba(255, 255, 255, 0.1);
   --text-main: #ffffff;
   --text-muted: #9ca3af;
@@ -23,37 +22,37 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Layout Container */
+/* --- Layout --- */
 .container {
   width: 100%;
   min-height: 100vh;
-  padding: 16px; /* Reduced padding for mobile */
-  padding-bottom: 100px;
+  padding: 16px;
+  padding-bottom: 100px; /* Space for bottom nav */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centers items horizontally */
+  align-items: center; /* Center content horizontally */
 }
 
-/* Specific centering for Login/Register pages */
+/* Center the login/register screens vertically */
 .container.center-all {
   justify-content: center;
 }
 
-/* Responsive Desktop Constraints */
+/* Desktop: Limit width */
 @media (min-width: 768px) {
   .container {
     max-width: 600px;
     margin: 0 auto;
     padding-top: 40px;
-    align-items: stretch; /* Cards stretch to fill container on PC */
   }
 }
 
-/* Professional Glass Card */
+/* --- Components --- */
 .card {
-  width: 100%; /* Force fit within container padding */
-  box-sizing: border-box; /* Includes padding in width calculation */
+  width: 100%;
+  max-width: 450px; /* Prevent it from getting too wide on tablets */
+  box-sizing: border-box;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(12px);
@@ -63,7 +62,7 @@ body {
   margin-bottom: 16px;
 }
 
-h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: white; }
+h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: white; text-align: center; }
 h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
 small { color: var(--text-muted); }
 
@@ -80,7 +79,7 @@ label {
 
 input, select {
   width: 100%;
-  padding: 14px; /* Slightly smaller for mobile fit */
+  padding: 14px;
   background: var(--input-bg);
   border: 1px solid #333;
   border-radius: 12px;
@@ -141,7 +140,7 @@ input:focus {
   transform: translateX(-50%);
   width: 90%;
   max-width: 400px;
-  background: rgba(10, 10, 10, 0.9);
+  background: rgba(10, 10, 10, 0.95);
   backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
   border-radius: 24px;
