@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const User = require('../models/User');
 const auth = require('../utils/authMiddleware');
 
-// @route POST api/auth/register (Existing code...)
+// @route POST api/auth/register
 router.post('/register', async (req, res) => {
     const { name, username, password, age, gender } = req.body;
     try {
@@ -29,7 +29,7 @@ router.post('/register', async (req, res) => {
     } catch (err) { res.status(500).send('Server Error'); }
 });
 
-// @route POST api/auth/login (Existing code...)
+// @route POST api/auth/login
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -53,10 +53,14 @@ router.put('/update', auth, async (req, res) => {
     const { ntfyTopic, ntfyServer, password } = req.body;
     try {
         const user = await User.findByPk(req.user.id);
-        if(ntfyTopic) user.ntfyTopic = ntfyTopic;
-        if(ntfyServer) user.ntfyServer = ntfyServer;
+        if (!user) return res.status(404).json({ msg: 'User not found' });
+
+        // Update fields if they are provided
+        if (ntfyTopic !== undefined) user.ntfyTopic = ntfyTopic;
+        if (ntfyServer !== undefined) user.ntfyServer = ntfyServer;
         
-        if(password) {
+        // Only update password if user actually typed one (length > 0)
+        if (password && password.trim().length > 0) {
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash(password, salt);
         }
@@ -64,13 +68,12 @@ router.put('/update', auth, async (req, res) => {
         await user.save();
         res.json({ msg: 'Profile Updated', user });
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
+        console.error("Update Error:", err);
+        res.status(500).json({ msg: 'Server Error during update' });
     }
 });
 
 // @route DELETE api/auth/delete
-// @desc Delete account
 router.delete('/delete', auth, async (req, res) => {
     try {
         await User.destroy({ where: { id: req.user.id } });
@@ -81,7 +84,6 @@ router.delete('/delete', auth, async (req, res) => {
 });
 
 // @route POST api/auth/test-ntfy
-// @desc Send a test notification
 router.post('/test-ntfy', auth, async (req, res) => {
     const { sendCallNotification } = require('../utils/ntfy');
     try {

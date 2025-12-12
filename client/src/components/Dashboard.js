@@ -49,24 +49,25 @@ const Dashboard = () => {
             const res = await axios.put(`${apiBase}/api/auth/update`, {
                 ntfyServer: settingsForm.ntfyServer,
                 ntfyTopic: settingsForm.ntfyTopic,
-                password: settingsForm.password || undefined
+                // Send password only if typed
+                password: settingsForm.password ? settingsForm.password : undefined
             }, config);
             
-            // Update local storage
             const updatedUser = { ...user, ...res.data.user };
             localStorage.setItem('user', JSON.stringify(updatedUser));
             setUser(updatedUser);
             alert("Settings Saved!");
             setSettingsForm(prev => ({...prev, password: ''}));
         } catch (err) {
-            alert("Failed to save settings");
+            console.error(err);
+            alert("Failed to save settings: " + (err.response?.data?.msg || err.message));
         }
     };
 
     const testNtfy = async () => {
         try {
             await axios.post(`${apiBase}/api/auth/test-ntfy`, {}, config);
-            alert("Test Notification Sent! Check your Ntfy app.");
+            alert("Test Notification Sent!");
         } catch (err) {
             alert("Failed to send test notification.");
         }
@@ -91,66 +92,48 @@ const Dashboard = () => {
 
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div>
-                    <h2 style={{ margin: 0 }}>Hello, {user.name}</h2>
-                    <small style={{ color: 'var(--text-muted)' }}>@{user.username}</small>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <img src={process.env.PUBLIC_URL + '/android-chrome-192x192.png'} alt="Logo" style={{ width: '40px', borderRadius: '8px' }} />
+                    <div>
+                        <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{user.name}</h2>
+                        <small style={{ color: 'var(--text-muted)' }}>@{user.username}</small>
+                    </div>
                 </div>
                 <div style={{ display: 'flex', gap: '15px' }}>
-                    <FaCog size={24} style={{ cursor: 'pointer', color: 'var(--primary)' }} onClick={() => setShowSettings(true)} />
+                    <FaCog size={24} style={{ cursor: 'pointer', color: 'var(--text-main)' }} onClick={() => setShowSettings(true)} />
                     <FaSignOutAlt size={24} style={{ cursor: 'pointer', color: 'var(--danger)' }} onClick={handleLogout} />
                 </div>
             </div>
 
-            {/* Friend Management */}
+            {/* Main Content Area - Navigation is now inside FriendList */}
             <FriendList currentUser={user} />
 
             {/* Settings Modal */}
             {showSettings && (
-                <div className="call-modal" style={{ background: 'rgba(0,40,0,0.95)' }}>
+                <div className="call-modal" style={{ background: 'rgba(2,10,2,0.95)' }}>
                     <div className="card" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
                         <h2 style={{marginTop: 0}}>Settings</h2>
-                        <button 
-                            onClick={() => setShowSettings(false)}
-                            style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', color: 'white', fontSize: '20px' }}
-                        >✕</button>
+                        <button onClick={() => setShowSettings(false)} style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', color: 'white', fontSize: '1.5rem', cursor:'pointer' }}>✕</button>
 
-                        <label>Ntfy Server URL</label>
-                        <input 
-                            value={settingsForm.ntfyServer}
-                            onChange={e => setSettingsForm({...settingsForm, ntfyServer: e.target.value})}
-                        />
+                        <label>Ntfy Server</label>
+                        <input value={settingsForm.ntfyServer} onChange={e => setSettingsForm({...settingsForm, ntfyServer: e.target.value})} />
 
                         <label>Ntfy Topic</label>
-                        <input 
-                            value={settingsForm.ntfyTopic}
-                            onChange={e => setSettingsForm({...settingsForm, ntfyTopic: e.target.value})}
-                        />
+                        <input value={settingsForm.ntfyTopic} onChange={e => setSettingsForm({...settingsForm, ntfyTopic: e.target.value})} />
                         
                         <div style={{display: 'flex', gap: '10px'}}>
                             <button className="btn-secondary" onClick={saveSettings}><FaSave/> Save</button>
                             <button className="btn-primary" onClick={testNtfy}><FaBell/> Test</button>
                         </div>
 
-                        <hr style={{ borderColor: '#004d00', margin: '20px 0' }} />
+                        <hr style={{ borderColor: '#14532d', margin: '20px 0' }} />
 
-                        <label>Change Password</label>
-                        <input 
-                            type="password"
-                            placeholder="New Password"
-                            value={settingsForm.password}
-                            onChange={e => setSettingsForm({...settingsForm, password: e.target.value})}
-                        />
-                        <button className="btn-secondary" onClick={saveSettings}>Update Password</button>
-
-                        <hr style={{ borderColor: '#004d00', margin: '20px 0' }} />
-
-                        <label style={{color: 'var(--danger)'}}>Delete Account</label>
-                        <input 
-                            placeholder="Type DELETE to confirm"
-                            value={settingsForm.deleteConfirm}
-                            onChange={e => setSettingsForm({...settingsForm, deleteConfirm: e.target.value})}
-                        />
-                        <button className="btn-danger" onClick={deleteAccount}><FaTrash/> Delete Forever</button>
+                        <label>New Password (Optional)</label>
+                        <input type="password" placeholder="Leave blank to keep current" value={settingsForm.password} onChange={e => setSettingsForm({...settingsForm, password: e.target.value})} />
+                        
+                        <label style={{color: 'var(--danger)', marginTop: '20px'}}>Delete Account</label>
+                        <input placeholder="Type DELETE to confirm" value={settingsForm.deleteConfirm} onChange={e => setSettingsForm({...settingsForm, deleteConfirm: e.target.value})} style={{borderColor: 'var(--danger)'}} />
+                        <button className="btn-danger" onClick={deleteAccount}><FaTrash/> Delete</button>
                     </div>
                 </div>
             )}
