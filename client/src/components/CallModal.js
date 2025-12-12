@@ -1,13 +1,22 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { SocketContext } from '../context/SocketContext';
-import { FaPhone, FaPhoneSlash, FaMicrophone, FaVideo, FaVideoSlash, FaMicrophoneSlash } from 'react-icons/fa';
+import { FaPhone, FaPhoneSlash, FaMicrophone, FaVideo } from 'react-icons/fa';
 
 const CallModal = () => {
     const { 
-        call, callAccepted, myVideo, userVideo, stream, 
-        callEnded, leaveCall, answerCall, isReceivingCall, 
+        call, callAccepted, myVideo, remoteStream, 
+        callEnded, hangUp, answerCall, isReceivingCall, 
         toggleMute, toggleVideo
     } = useContext(SocketContext);
+
+    const userVideo = useRef();
+
+    // Fix: Attach remote stream safely when component mounts or stream changes
+    useEffect(() => {
+        if (remoteStream && userVideo.current) {
+            userVideo.current.srcObject = remoteStream;
+        }
+    }, [remoteStream, callAccepted]);
 
     // Render nothing if no active call state
     if (!isReceivingCall && !callAccepted) return null;
@@ -37,16 +46,17 @@ const CallModal = () => {
                     <p style={{ color: '#9ca3af', marginBottom: '60px' }}>Incoming {call.type} Call...</p>
                     
                     <div style={{ display: 'flex', gap: '40px' }}>
-                        <button onClick={leaveCall} style={{ 
+                        <button onClick={hangUp} style={{ 
                             width: '70px', height: '70px', borderRadius: '50%', border: 'none', 
-                            background: '#ef4444', color: 'white', fontSize: '1.5rem', cursor: 'pointer' 
+                            background: '#ef4444', color: 'white', fontSize: '1.5rem', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}>
                             <FaPhoneSlash />
                         </button>
                         <button onClick={answerCall} style={{ 
                             width: '70px', height: '70px', borderRadius: '50%', border: 'none', 
                             background: '#22c55e', color: 'white', fontSize: '1.5rem', cursor: 'pointer',
-                            animation: 'pulse 1.5s infinite' 
+                            animation: 'pulse 1.5s infinite', display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}>
                             <FaPhone />
                         </button>
@@ -78,6 +88,7 @@ const CallModal = () => {
                                 </div>
                                 <h2>{call.name}</h2>
                                 <p>Audio Call in progress</p>
+                                <audio ref={userVideo} autoPlay /> 
                             </div>
                         </div>
                     )}
@@ -108,14 +119,16 @@ const CallModal = () => {
                     }}>
                         <button onClick={toggleMute} style={{ 
                             width: '50px', height: '50px', borderRadius: '50%', border: 'none', 
-                            background: '#333', color: 'white', fontSize: '1.2rem', cursor: 'pointer' 
+                            background: '#333', color: 'white', fontSize: '1.2rem', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}>
                             <FaMicrophone />
                         </button>
                         
-                        <button onClick={leaveCall} style={{ 
+                        <button onClick={hangUp} style={{ 
                             width: '50px', height: '50px', borderRadius: '50%', border: 'none', 
-                            background: '#ef4444', color: 'white', fontSize: '1.2rem', cursor: 'pointer' 
+                            background: '#ef4444', color: 'white', fontSize: '1.2rem', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
                         }}>
                             <FaPhoneSlash />
                         </button>
@@ -123,7 +136,8 @@ const CallModal = () => {
                         {call.type === 'video' && (
                              <button onClick={toggleVideo} style={{ 
                                 width: '50px', height: '50px', borderRadius: '50%', border: 'none', 
-                                background: '#333', color: 'white', fontSize: '1.2rem', cursor: 'pointer' 
+                                background: '#333', color: 'white', fontSize: '1.2rem', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center'
                             }}>
                                 <FaVideo />
                              </button>

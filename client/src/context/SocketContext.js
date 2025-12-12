@@ -16,18 +16,18 @@ const socket = io(socketURL, {
 
 const SocketContextProvider = ({ children }) => {
   const [stream, setStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null); // Fix: Store remote stream in state
   const [me, setMe] = useState('');
   const [call, setCall] = useState({});
   const [callAccepted, setCallAccepted] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
   const [name, setName] = useState('');
   const [isReceivingCall, setIsReceivingCall] = useState(false);
+  const [otherUserId, setOtherUserId] = useState(null); // Fix: Track who we are talking to
 
   const myVideo = useRef();
-  const userVideo = useRef();
   const connectionRef = useRef();
 
-  // STUN servers are critical for video to work over the internet/tailscale
   const iceServers = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:global.stun.twilio.com:3478' }
@@ -57,7 +57,8 @@ const SocketContextProvider = ({ children }) => {
     });
 
     socket.on('callEnded', () => {
-        leaveCall();
+        // If the other person hangs up, we just clean up
+        leaveCall(); 
     });
 
     return () => {
@@ -73,6 +74,7 @@ const SocketContextProvider = ({ children }) => {
 
     setCallAccepted(true);
     setIsReceivingCall(false);
+    setOtherUserId(call.from); // Fix: Remember who called us
 
     const peer = new Peer({ 
         initiator: false, 
@@ -85,10 +87,8 @@ const SocketContextProvider = ({ children }) => {
       socket.emit('answerCall', { signal: data, to: call.from });
     });
 
-    peer.on('stream', (remoteStream) => {
-      if (userVideo.current) {
-        userVideo.current.srcObject = remoteStream;
-      }
+    peer.on('stream', (currentRemoteStream) => {
+      setRemoteStream(currentRemoteStream); // Fix: Save stream to state
     });
 
     peer.signal(call.signal);
@@ -98,6 +98,8 @@ const SocketContextProvider = ({ children }) => {
   const callUser = async (id, type = 'video') => {
     const currentStream = await getMedia();
     if(!currentStream) return;
+
+    setOtherUserId(id); // Fix: Remember who we are calling
 
     const peer = new Peer({ 
         initiator: true, 
@@ -111,15 +113,13 @@ const SocketContextProvider = ({ children }) => {
         userToCall: id, 
         signal: data, 
         from: me, 
-        name: name, // Uses the state 'name' which we will set in Dashboard
+        name: name,
         type
       });
     });
 
-    peer.on('stream', (remoteStream) => {
-      if (userVideo.current) {
-        userVideo.current.srcObject = remoteStream;
-      }
+    peer.on('stream', (currentRemoteStream) => {
+      setRemoteStream(currentRemoteStream); // Fix: Save stream to state
     });
 
     socket.on('callAccepted', (signal) => {
@@ -130,16 +130,28 @@ const SocketContextProvider = ({ children }) => {
     connectionRef.current = peer;
   };
 
+  // Called when I click the red button
+  const hangUp = () => {
+      if(otherUserId) {
+          socket.emit('endCall', { to: otherUserId });
+      }
+      leaveCall();
+  };
+
+  // Internal cleanup function
   const leaveCall = () => {
     setCallEnded(true);
     if (connectionRef.current) connectionRef.current.destroy();
     if (stream) stream.getTracks().forEach(track => track.stop());
+    
     setCall({});
     setIsReceivingCall(false);
     setCallAccepted(false);
+    setRemoteStream(null);
+    setOtherUserId(null);
     
-    // Slight delay before reload to ensure socket events clear
-    setTimeout(() => window.location.reload(), 100);
+    // Force reload to clear all WebRTC states cleanly
+    window.location.reload();
   };
 
   const registerUser = (userId) => {
@@ -156,8 +168,8 @@ const SocketContextProvider = ({ children }) => {
 
   return (
     <SocketContext.Provider value={{
-      call, callAccepted, myVideo, userVideo, stream, name, setName, callEnded, me,
-      callUser, leaveCall, answerCall, registerUser, isReceivingCall, toggleMute, toggleVideo
+      call, callAccepted, myVideo, remoteStream, stream, name, setName, callEnded, me,
+      callUser, hangUp, answerCall, registerUser, isReceivingCall, toggleMute, toggleVideo
     }}>
       {children}
     </SocketContext.Provider>
