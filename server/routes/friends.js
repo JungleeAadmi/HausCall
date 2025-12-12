@@ -9,12 +9,15 @@ const { Op, Sequelize } = require('sequelize');
 router.get('/search', auth, async (req, res) => {
     try {
         const { query } = req.query;
+        
+        // DEBUG LOG: This will show up in journalctl if the code is active
+        console.log(`🔎 SEARCH HIT: User ${req.user.id} searching for '${query}'`);
+
         if (!query || query.trim() === '') {
             return res.json([]); 
         }
 
         const lowerQuery = query.toLowerCase();
-        console.log(`🔍 Searching for: ${lowerQuery} by User: ${req.user.id}`);
 
         const users = await User.findAll({
             where: {
@@ -36,19 +39,18 @@ router.get('/search', auth, async (req, res) => {
                     }
                 ]
             },
-            attributes: ['id', 'name', 'username', 'age', 'gender'] // Sensitive data excluded
+            attributes: ['id', 'name', 'username'] // Don't send sensitive data
         });
 
-        console.log(`✅ Found ${users.length} users`);
+        console.log(`✅ SEARCH RESULT: Found ${users.length} users matching '${lowerQuery}'`);
         res.json(users);
     } catch (err) {
-        console.error("❌ Search Error:", err.message);
+        console.error("❌ Search Error:", err); // Logs exact error details
         res.status(500).send('Server Error');
     }
 });
 
 // @route   POST api/friends/request
-// @desc    Send a friend request
 router.post('/request', auth, async (req, res) => {
     try {
         const { targetId } = req.body;
@@ -58,12 +60,11 @@ router.post('/request', auth, async (req, res) => {
 
         const currentUser = await User.findByPk(req.user.id);
         
-        // Check if already friends
         if (currentUser.friends.includes(targetId)) {
             return res.status(400).json({ msg: 'Already friends' });
         }
 
-        // Add to requests
+        // Initialize arrays if null
         let requests = targetUser.friendRequests || [];
         if (!requests.includes(req.user.id)) {
             requests.push(req.user.id);
@@ -79,7 +80,6 @@ router.post('/request', auth, async (req, res) => {
 });
 
 // @route   POST api/friends/accept
-// @desc    Accept a friend request
 router.post('/accept', auth, async (req, res) => {
     try {
         const { requesterId } = req.body;
@@ -89,17 +89,16 @@ router.post('/accept', auth, async (req, res) => {
 
         if (!user || !requester) return res.status(404).json({ msg: 'User not found' });
 
-        // Update User's list
+        // Update User
         let userFriends = user.friends || [];
         if (!userFriends.includes(requesterId)) userFriends.push(requesterId);
         user.friends = userFriends;
         
-        // Remove from requests
         let userRequests = user.friendRequests || [];
         user.friendRequests = userRequests.filter(id => id !== requesterId);
         await user.save();
 
-        // Update Requester's list
+        // Update Requester
         let reqFriends = requester.friends || [];
         if (!reqFriends.includes(user.id)) reqFriends.push(user.id);
         requester.friends = reqFriends;
@@ -117,13 +116,11 @@ router.post('/accept', auth, async (req, res) => {
 });
 
 // @route   GET api/friends
-// @desc    Get friend list and pending requests
 router.get('/', auth, async (req, res) => {
     try {
         const user = await User.findByPk(req.user.id);
         if(!user) return res.status(404).json({msg: 'User not found'});
 
-        // Handle empty lists safely
         const friendIds = user.friends || [];
         const requestIds = user.friendRequests || [];
 
