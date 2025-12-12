@@ -17,8 +17,8 @@ const FriendList = ({ currentUser }) => {
     const fetchFriends = async () => {
         try {
             const res = await axios.get(`${apiBase}/api/friends`, config);
-            setFriends(res.data.friends);
-            setRequests(res.data.requests);
+            setFriends(res.data.friends || []);
+            setRequests(res.data.requests || []);
         } catch (err) { console.error("Error fetching friends", err); }
     };
 
@@ -40,6 +40,7 @@ const FriendList = ({ currentUser }) => {
             alert('Request Sent!');
             setSearchQuery('');
             setSearchResults([]);
+            setActiveTab('pending'); // Switch tab to see progress
         } catch (err) { alert(err.response?.data?.msg || 'Error sending request'); }
     };
 
@@ -47,37 +48,42 @@ const FriendList = ({ currentUser }) => {
         try {
             await axios.post(`${apiBase}/api/friends/accept`, { requesterId: id }, config);
             fetchFriends();
+            alert("Friend Accepted!");
         } catch (err) { console.error(err); }
     };
 
     return (
         <div>
-            {/* CONTENT AREA */}
             <div style={{ paddingBottom: '20px' }}>
                 
-                {/* FRIENDS TAB */}
+                {/* --- FRIENDS TAB --- */}
                 {activeTab === 'friends' && (
                     <div>
-                        <h3>Friends</h3>
-                        {friends.length === 0 && <p style={{ textAlign: 'center', color: '#666', marginTop: '50px' }}>No friends yet.<br/>Go to 'Add' to find people.</p>}
+                        <h3>My Friends</h3>
+                        {friends.length === 0 && (
+                            <div style={{ textAlign: 'center', marginTop: '60px', opacity: 0.6 }}>
+                                <p>No friends yet.</p>
+                                <p>Tap "Add" below to find people.</p>
+                            </div>
+                        )}
                         
-                        <div className="grid-view">
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100%, 1fr))', gap: '15px' }}>
                             {friends.map(friend => (
-                                <div key={friend.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px' }}>
+                                <div key={friend.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', marginBottom: 0 }}>
                                     <div style={{display:'flex', alignItems:'center', gap: '15px'}}>
-                                        <div style={{width: '40px', height: '40px', background: '#14532d', borderRadius: '50%', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', fontSize:'1.2rem'}}>
+                                        <div style={{width: '40px', height: '40px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold'}}>
                                             {friend.name.charAt(0).toUpperCase()}
                                         </div>
                                         <div>
-                                            <h4 style={{ margin: 0 }}>{friend.name}</h4>
-                                            <small style={{ color: '#888' }}>@{friend.username}</small>
+                                            <h4 style={{ margin: 0, color: 'white' }}>{friend.name}</h4>
+                                            <small>@{friend.username}</small>
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        <button onClick={() => callUser(friend.id, 'audio')} className="btn-icon" style={{ background: '#222', color: '#ccc' }}>
+                                        <button onClick={() => callUser(friend.id, 'audio')} className="btn-icon" style={{ background: 'rgba(255,255,255,0.1)', color: '#ccc' }}>
                                             <FaPhone />
                                         </button>
-                                        <button onClick={() => callUser(friend.id, 'video')} className="btn-icon" style={{ background: 'var(--primary)', color: 'white' }}>
+                                        <button onClick={() => callUser(friend.id, 'video')} className="btn-icon" style={{ background: 'var(--primary)', color: 'black' }}>
                                             <FaVideo />
                                         </button>
                                     </div>
@@ -87,20 +93,20 @@ const FriendList = ({ currentUser }) => {
                     </div>
                 )}
 
-                {/* PENDING TAB */}
+                {/* --- PENDING TAB --- */}
                 {activeTab === 'pending' && (
                     <div>
                         <h3>Pending Requests</h3>
                         {requests.length === 0 && <p style={{ textAlign: 'center', color: '#666', marginTop: '50px' }}>No pending requests.</p>}
                         
-                        <div className="grid-view">
+                        <div>
                             {requests.map(req => (
-                                <div key={req.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div key={req.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', marginBottom: '10px' }}>
                                      <div>
-                                        <h4 style={{ margin: 0 }}>{req.name}</h4>
-                                        <small style={{ color: '#888' }}>@{req.username}</small>
+                                        <h4 style={{ margin: 0, color: 'white' }}>{req.name}</h4>
+                                        <small>@{req.username}</small>
                                     </div>
-                                    <button className="btn-secondary" style={{ width: 'auto', padding: '8px 15px' }} onClick={() => acceptRequest(req.id)}>
+                                    <button className="btn-secondary" style={{ width: 'auto', padding: '8px 16px', marginTop: 0 }} onClick={() => acceptRequest(req.id)}>
                                         Accept <FaCheck />
                                     </button>
                                 </div>
@@ -109,26 +115,31 @@ const FriendList = ({ currentUser }) => {
                     </div>
                 )}
 
-                {/* SEARCH TAB */}
+                {/* --- SEARCH TAB --- */}
                 {activeTab === 'search' && (
                     <div>
-                         <h3>Add Friends</h3>
-                         {/* UNIFORM SEARCH BAR */}
+                         <h3>Add New Friend</h3>
                         <form onSubmit={handleSearch} style={{ display: 'flex', gap: '10px' }}>
-                            <input type="text" placeholder="Search by Name or Username..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                            <button type="submit" className="btn-icon" style={{ background: 'var(--primary)', color: 'white', marginTop: '10px' }}>
+                            <input 
+                                type="text" 
+                                placeholder="Search Name or Username..." 
+                                value={searchQuery} 
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{ flex: 1 }}
+                            />
+                            <button type="submit" className="btn-icon" style={{ background: 'var(--primary)', color: 'black', width: '54px', height: '54px' }}>
                                 <FaSearch/>
                             </button>
                         </form>
                         
-                        <div className="grid-view" style={{ marginTop: '20px' }}>
+                        <div style={{ marginTop: '20px' }}>
                             {searchResults.map(user => (
-                                <div key={user.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div key={user.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', marginBottom: '10px' }}>
                                     <div>
-                                        <h4 style={{ margin: 0 }}>{user.name}</h4>
-                                        <small style={{ color: '#888' }}>@{user.username}</small>
+                                        <h4 style={{ margin: 0, color: 'white' }}>{user.name}</h4>
+                                        <small>@{user.username}</small>
                                     </div>
-                                    <button className="btn-secondary" style={{ width: 'auto', padding: '8px 15px' }} onClick={() => sendRequest(user.id)}>
+                                    <button className="btn-secondary" style={{ width: 'auto', padding: '8px 16px', marginTop: 0 }} onClick={() => sendRequest(user.id)}>
                                         <FaUserPlus /> Add
                                     </button>
                                 </div>
@@ -138,7 +149,7 @@ const FriendList = ({ currentUser }) => {
                 )}
             </div>
 
-            {/* BOTTOM NAVIGATION BAR */}
+            {/* --- BOTTOM NAV --- */}
             <div className="bottom-nav">
                 <button className={`nav-item ${activeTab === 'friends' ? 'active' : ''}`} onClick={() => setActiveTab('friends')}>
                     <FaUsers className="nav-icon" />

@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const User = require('../models/User');
 const auth = require('../utils/authMiddleware');
 
+// Register
 router.post('/register', async (req, res) => {
     const { name, username, password, age, gender } = req.body;
     try {
@@ -28,6 +29,7 @@ router.post('/register', async (req, res) => {
     } catch (err) { res.status(500).send('Server Error'); }
 });
 
+// Login
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -45,17 +47,18 @@ router.post('/login', async (req, res) => {
     } catch (err) { res.status(500).send('Server Error'); }
 });
 
-// FIXED UPDATE ROUTE
+// Update Settings
 router.put('/update', auth, async (req, res) => {
     const { ntfyTopic, ntfyServer, password } = req.body;
     try {
         const user = await User.findByPk(req.user.id);
         if (!user) return res.status(404).json({ msg: 'User not found' });
 
+        // Update Ntfy Settings
         if (ntfyTopic !== undefined) user.ntfyTopic = ntfyTopic;
         if (ntfyServer !== undefined) user.ntfyServer = ntfyServer;
         
-        // Critical Fix: Only update password if strictly provided and not empty
+        // Update Password ONLY if provided and valid
         if (password && typeof password === 'string' && password.trim().length > 0) {
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash(password, salt);
@@ -63,7 +66,7 @@ router.put('/update', auth, async (req, res) => {
         
         await user.save();
         
-        // Return clean user object
+        // Return user without password
         const userObj = user.toJSON();
         delete userObj.password;
         
@@ -74,6 +77,7 @@ router.put('/update', auth, async (req, res) => {
     }
 });
 
+// Delete Account
 router.delete('/delete', auth, async (req, res) => {
     try {
         await User.destroy({ where: { id: req.user.id } });
@@ -83,13 +87,17 @@ router.delete('/delete', auth, async (req, res) => {
     }
 });
 
+// Test Ntfy
 router.post('/test-ntfy', auth, async (req, res) => {
     const { sendCallNotification } = require('../utils/ntfy');
     try {
         const user = await User.findByPk(req.user.id);
-        await sendCallNotification(user.ntfyTopic, "Test User", "test", user.ntfyServer);
+        if (!user) return res.status(404).json({ msg: 'User not found' });
+        
+        await sendCallNotification(user.ntfyTopic, "Test", "test", user.ntfyServer);
         res.json({ msg: 'Notification Sent' });
     } catch (err) {
+        console.error("Test Ntfy Error:", err);
         res.status(500).json({ msg: 'Failed to send' });
     }
 });

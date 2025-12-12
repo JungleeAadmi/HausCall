@@ -7,7 +7,6 @@ const Login = () => {
     const [formData, setFormData] = useState({ username: '', password: '' });
     const [error, setError] = useState('');
 
-    // Persistence Check: If token exists, go straight to dashboard
     useEffect(() => {
         if(localStorage.getItem('token')) navigate('/dashboard');
     }, [navigate]);
@@ -29,11 +28,11 @@ const Login = () => {
     };
 
     return (
-        <div className="container">
-            <div className="card">
-                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+        <div className="container" style={{justifyContent: 'center'}}>
+            <div className="card" style={{ maxWidth: '400px', margin: '0 auto', width: '100%' }}>
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <div style={{ 
-                        background: '#1a1a1a', 
+                        background: 'rgba(255,255,255,0.05)', 
                         width: '80px', 
                         height: '80px', 
                         borderRadius: '20px', 
@@ -41,7 +40,8 @@ const Login = () => {
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                        border: '1px solid rgba(255,255,255,0.1)'
                     }}>
                         <img 
                             src={process.env.PUBLIC_URL + '/android-chrome-192x192.png'} 
@@ -51,8 +51,8 @@ const Login = () => {
                     </div>
                 </div>
 
-                <h2>Welcome Back</h2>
-                {error && <p style={{ color: 'var(--danger)', textAlign: 'center', fontSize: '0.9rem' }}>{error}</p>}
+                <h2 style={{ textAlign: 'center' }}>HausCall Login</h2>
+                {error && <p style={{ color: '#ef4444', textAlign: 'center', fontSize: '0.9rem', background: 'rgba(239, 68, 68, 0.1)', padding: '10px', borderRadius: '8px' }}>{error}</p>}
                 
                 <form onSubmit={onSubmit}>
                     <label>Username</label>
@@ -64,8 +64,8 @@ const Login = () => {
                     <button type="submit" className="btn btn-primary">Sign In</button>
                 </form>
                 
-                <div style={{ textAlign: 'center', marginTop: '30px', fontSize: '0.9rem', color: '#666' }}>
-                    New here? <Link to="/register" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 'bold' }}>Create Account</Link>
+                <div style={{ textAlign: 'center', marginTop: '30px', fontSize: '0.9rem', color: '#9ca3af' }}>
+                    New here? <Link to="/register" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '600' }}>Create Account</Link>
                 </div>
             </div>
         </div>
