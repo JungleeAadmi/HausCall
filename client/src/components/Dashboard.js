@@ -21,8 +21,12 @@ const Dashboard = () => {
     });
 
     useEffect(() => {
+        // Persistence: Check localStorage
         const storedUser = localStorage.getItem('user');
-        if (!storedUser) { navigate('/'); return; }
+        if (!storedUser) { 
+            navigate('/'); 
+            return; 
+        }
         
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
@@ -36,8 +40,10 @@ const Dashboard = () => {
     }, [registerUser, navigate]);
 
     const handleLogout = () => {
+        // Explicit logout clears storage
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        // Force reload to clear socket state
         window.location.href = '/';
     };
 
@@ -46,12 +52,16 @@ const Dashboard = () => {
 
     const saveSettings = async () => {
         try {
-            const res = await axios.put(`${apiBase}/api/auth/update`, {
+            const payload = {
                 ntfyServer: settingsForm.ntfyServer,
                 ntfyTopic: settingsForm.ntfyTopic,
-                // Send password only if typed
-                password: settingsForm.password ? settingsForm.password : undefined
-            }, config);
+            };
+            // Only add password if typed
+            if(settingsForm.password.trim()) {
+                payload.password = settingsForm.password;
+            }
+
+            const res = await axios.put(`${apiBase}/api/auth/update`, payload, config);
             
             const updatedUser = { ...user, ...res.data.user };
             localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -84,56 +94,70 @@ const Dashboard = () => {
         }
     };
 
-    if (!user) return <div className="container">Loading...</div>;
+    if (!user) return <div className="container" style={{justifyContent:'center', textAlign:'center'}}>Loading...</div>;
 
     return (
-        <div className="container">
+        <div className="container" style={{justifyContent:'flex-start', paddingTop: '40px'}}>
             <CallModal />
 
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            {/* Professional Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', padding: '0 10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <img src={process.env.PUBLIC_URL + '/android-chrome-192x192.png'} alt="Logo" style={{ width: '40px', borderRadius: '8px' }} />
+                    <div style={{
+                        background: '#14532d', 
+                        width: '45px', 
+                        height: '45px', 
+                        borderRadius: '12px', 
+                        display:'flex', 
+                        alignItems:'center', 
+                        justifyContent:'center',
+                        fontSize: '1.2rem',
+                        fontWeight: 'bold'
+                    }}>
+                        {user.name.charAt(0).toUpperCase()}
+                    </div>
                     <div>
-                        <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{user.name}</h2>
+                        <h2 style={{ margin: 0, fontSize: '1.2rem', textAlign:'left', marginBottom:'2px' }}>{user.name}</h2>
                         <small style={{ color: 'var(--text-muted)' }}>@{user.username}</small>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '15px' }}>
-                    <FaCog size={24} style={{ cursor: 'pointer', color: 'var(--text-main)' }} onClick={() => setShowSettings(true)} />
-                    <FaSignOutAlt size={24} style={{ cursor: 'pointer', color: 'var(--danger)' }} onClick={handleLogout} />
+                <div style={{ display: 'flex', gap: '20px' }}>
+                    <FaCog size={22} style={{ cursor: 'pointer', color: '#ccc' }} onClick={() => setShowSettings(true)} />
+                    <FaSignOutAlt size={22} style={{ cursor: 'pointer', color: 'var(--danger)' }} onClick={handleLogout} />
                 </div>
             </div>
 
-            {/* Main Content Area - Navigation is now inside FriendList */}
+            {/* Main Content */}
             <FriendList currentUser={user} />
 
             {/* Settings Modal */}
             {showSettings && (
-                <div className="call-modal" style={{ background: 'rgba(2,10,2,0.95)' }}>
-                    <div className="card" style={{ width: '90%', maxWidth: '400px', position: 'relative' }}>
-                        <h2 style={{marginTop: 0}}>Settings</h2>
-                        <button onClick={() => setShowSettings(false)} style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', color: 'white', fontSize: '1.5rem', cursor:'pointer' }}>✕</button>
+                <div className="call-modal" style={{ background: 'rgba(0,0,0,0.9)' }}>
+                    <div className="container" style={{justifyContent: 'center'}}>
+                        <div className="card" style={{ position: 'relative' }}>
+                            <h2 style={{marginTop: 0, fontSize: '1.2rem'}}>Settings</h2>
+                            <button onClick={() => setShowSettings(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: '#666', fontSize: '1.5rem', cursor:'pointer' }}>✕</button>
 
-                        <label>Ntfy Server</label>
-                        <input value={settingsForm.ntfyServer} onChange={e => setSettingsForm({...settingsForm, ntfyServer: e.target.value})} />
+                            <label>Ntfy Server</label>
+                            <input value={settingsForm.ntfyServer} onChange={e => setSettingsForm({...settingsForm, ntfyServer: e.target.value})} />
 
-                        <label>Ntfy Topic</label>
-                        <input value={settingsForm.ntfyTopic} onChange={e => setSettingsForm({...settingsForm, ntfyTopic: e.target.value})} />
-                        
-                        <div style={{display: 'flex', gap: '10px'}}>
-                            <button className="btn-secondary" onClick={saveSettings}><FaSave/> Save</button>
-                            <button className="btn-primary" onClick={testNtfy}><FaBell/> Test</button>
+                            <label>Ntfy Topic</label>
+                            <input value={settingsForm.ntfyTopic} onChange={e => setSettingsForm({...settingsForm, ntfyTopic: e.target.value})} />
+                            
+                            <div style={{display: 'flex', gap: '10px', marginTop: '10px'}}>
+                                <button className="btn btn-secondary" onClick={saveSettings} style={{margin:0}}><FaSave/> Save</button>
+                                <button className="btn btn-primary" onClick={testNtfy} style={{margin:0}}><FaBell/> Test</button>
+                            </div>
+
+                            <hr style={{ borderColor: '#333', margin: '20px 0' }} />
+
+                            <label>New Password (Optional)</label>
+                            <input type="password" placeholder="Leave blank to keep current" value={settingsForm.password} onChange={e => setSettingsForm({...settingsForm, password: e.target.value})} />
+                            
+                            <label style={{color: 'var(--danger)', marginTop: '20px'}}>Delete Account</label>
+                            <input placeholder="Type DELETE to confirm" value={settingsForm.deleteConfirm} onChange={e => setSettingsForm({...settingsForm, deleteConfirm: e.target.value})} style={{borderColor: 'var(--danger)'}} />
+                            <button className="btn btn-danger" onClick={deleteAccount} style={{marginTop:'10px'}}><FaTrash/> Delete</button>
                         </div>
-
-                        <hr style={{ borderColor: '#14532d', margin: '20px 0' }} />
-
-                        <label>New Password (Optional)</label>
-                        <input type="password" placeholder="Leave blank to keep current" value={settingsForm.password} onChange={e => setSettingsForm({...settingsForm, password: e.target.value})} />
-                        
-                        <label style={{color: 'var(--danger)', marginTop: '20px'}}>Delete Account</label>
-                        <input placeholder="Type DELETE to confirm" value={settingsForm.deleteConfirm} onChange={e => setSettingsForm({...settingsForm, deleteConfirm: e.target.value})} style={{borderColor: 'var(--danger)'}} />
-                        <button className="btn-danger" onClick={deleteAccount}><FaTrash/> Delete</button>
                     </div>
                 </div>
             )}

@@ -26,36 +26,43 @@ const Register = () => {
     };
 
     return (
-        <div className="container" style={{ justifyContent: 'center' }}>
-            <div className="card" style={{ textAlign: 'center' }}>
-                {/* LOGO ADDED HERE */}
-                <img 
-                    src={process.env.PUBLIC_URL + '/android-chrome-192x192.png'} 
-                    alt="Logo" 
-                    style={{ width: '80px', marginBottom: '10px', borderRadius: '15px' }}
-                />
-                <h2>Join HausCall</h2>
-                {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
+        <div className="container">
+            <div className="card">
+                 <h2 style={{marginTop: 0}}>Create Account</h2>
+                {error && <p style={{ color: 'var(--danger)', textAlign: 'center' }}>{error}</p>}
                 
                 <form onSubmit={onSubmit}>
-                    <input type="text" placeholder="Full Name" name="name" value={name} onChange={onChange} required />
-                    <input type="text" placeholder="Username (Unique)" name="username" value={username} onChange={onChange} required />
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <input type="number" placeholder="Age" name="age" value={age} onChange={onChange} required style={{flex: 1}}/>
-                        <select name="gender" value={gender} onChange={onChange} style={{flex: 1}}>
-                            <option value="Not Specified">Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
+                    <label>Full Name</label>
+                    <input type="text" name="name" value={name} onChange={onChange} required />
+                    
+                    <label>Username</label>
+                    <input type="text" name="username" value={username} onChange={onChange} required />
+                    
+                    <div style={{ display: 'flex', gap: '15px' }}>
+                        <div style={{flex: 1}}>
+                            <label>Age</label>
+                            <input type="number" name="age" value={age} onChange={onChange} required />
+                        </div>
+                        <div style={{flex: 1}}>
+                            <label>Gender</label>
+                            <select name="gender" value={gender} onChange={onChange} style={{marginTop: '0'}}>
+                                <option value="Not Specified">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
                     </div>
-                    <input type="password" placeholder="Password" name="password" value={password} onChange={onChange} required />
-                    <button type="submit" className="btn btn-secondary">Create Account</button>
+
+                    <label>Password</label>
+                    <input type="password" name="password" value={password} onChange={onChange} required />
+                    
+                    <button type="submit" className="btn btn-primary">Sign Up</button>
                 </form>
 
-                <p style={{ marginTop: '20px', color: '#888' }}>
-                    Already have an account? <Link to="/" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Login</Link>
-                </p>
+                <div style={{ textAlign: 'center', marginTop: '20px', color: '#666', fontSize: '0.9rem' }}>
+                    Have an account? <Link to="/" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 'bold' }}>Sign In</Link>
+                </div>
             </div>
         </div>
     );

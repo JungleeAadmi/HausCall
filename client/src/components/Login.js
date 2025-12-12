@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 
@@ -6,6 +6,11 @@ const Login = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({ username: '', password: '' });
     const [error, setError] = useState('');
+
+    // Persistence Check: If token exists, go straight to dashboard
+    useEffect(() => {
+        if(localStorage.getItem('token')) navigate('/dashboard');
+    }, [navigate]);
 
     const { username, password } = formData;
     const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -24,27 +29,44 @@ const Login = () => {
     };
 
     return (
-        <div className="container" style={{ justifyContent: 'center' }}>
-            <div className="card" style={{ textAlign: 'center' }}>
-                {/* LOGO ADDED HERE */}
-                <img 
-                    src={process.env.PUBLIC_URL + '/android-chrome-192x192.png'} 
-                    alt="Logo" 
-                    style={{ width: '80px', marginBottom: '10px', borderRadius: '15px' }}
-                />
-                
-                <h2>HausCall Login</h2>
-                {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
+        <div className="container">
+            <div className="card">
+                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                    <div style={{ 
+                        background: '#1a1a1a', 
+                        width: '80px', 
+                        height: '80px', 
+                        borderRadius: '20px', 
+                        margin: '0 auto', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+                    }}>
+                        <img 
+                            src={process.env.PUBLIC_URL + '/android-chrome-192x192.png'} 
+                            alt="Logo" 
+                            style={{ width: '50px' }}
+                        />
+                    </div>
+                </div>
+
+                <h2>Welcome Back</h2>
+                {error && <p style={{ color: 'var(--danger)', textAlign: 'center', fontSize: '0.9rem' }}>{error}</p>}
                 
                 <form onSubmit={onSubmit}>
-                    <input type="text" placeholder="Username" name="username" value={username} onChange={onChange} required />
-                    <input type="password" placeholder="Password" name="password" value={password} onChange={onChange} required />
-                    <button type="submit" className="btn btn-primary">Login</button>
+                    <label>Username</label>
+                    <input type="text" name="username" value={username} onChange={onChange} required />
+                    
+                    <label>Password</label>
+                    <input type="password" name="password" value={password} onChange={onChange} required />
+                    
+                    <button type="submit" className="btn btn-primary">Sign In</button>
                 </form>
                 
-                <p style={{ marginTop: '20px', color: '#888' }}>
-                    Don't have an account? <Link to="/register" style={{ color: 'var(--secondary)', textDecoration: 'none' }}>Sign Up</Link>
-                </p>
+                <div style={{ textAlign: 'center', marginTop: '30px', fontSize: '0.9rem', color: '#666' }}>
+                    New here? <Link to="/register" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 'bold' }}>Create Account</Link>
+                </div>
             </div>
         </div>
     );

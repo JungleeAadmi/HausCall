@@ -8,10 +8,11 @@ const socketURL = process.env.NODE_ENV === 'production'
   ? '/' 
   : `http://${window.location.hostname}:5000`;
 
-// Initialize socket
+// Auto-connect, robust reconnection
 const socket = io(socketURL, {
     reconnection: true,
     reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
 });
 
 const SocketContextProvider = ({ children }) => {
@@ -27,21 +28,38 @@ const SocketContextProvider = ({ children }) => {
   const userVideo = useRef();
   const connectionRef = useRef();
 
-  // BLACK SCREEN FIX: Google STUN servers help phones find each other
   const iceServers = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:global.stun.twilio.com:3478' }
   ];
 
-  useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then((currentStream) => {
+  // Helper: Request Camera/Mic ONLY when needed
+  const getMedia = async () => {
+    try {
+        const currentStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setStream(currentStream);
         if (myVideo.current) {
-          myVideo.current.srcObject = currentStream;
+            myVideo.current.srcObject = currentStream;
         }
-      })
-      .catch((err) => console.error("Failed to get media stream", err));
+        return currentStream;
+    } catch (err) {
+        console.error("Failed to get media:", err);
+        alert("Camera permission denied. Cannot start call.");
+        return null;
+    }
+  };
+
+  useEffect(() => {
+    // 1. Socket Setup
+    socket.on('connect', () => {
+        console.log("Socket Connected:", socket.id);
+        // Persistence Fix: If we have a user in storage, re-register immediately
+        const storedUser = localStorage.getItem('user');
+        if(storedUser) {
+            const u = JSON.parse(storedUser);
+            socket.emit('register', u.id);
+        }
+    });
 
     socket.on('me', (id) => setMe(id));
 
@@ -50,11 +68,10 @@ const SocketContextProvider = ({ children }) => {
       setIsReceivingCall(true);
     });
 
-    // RECONNECT FIX: Ensure socket connects when app comes back from background
+    // 2. Re-register on window focus (fixes minimize logout issue)
     const handleVisibilityChange = () => {
         if (document.visibilityState === 'visible') {
             if (!socket.connected) socket.connect();
-            // Re-register user ID if we have one in local storage
             const storedUser = localStorage.getItem('user');
             if (storedUser) {
                 const u = JSON.parse(storedUser);
@@ -63,8 +80,9 @@ const SocketContextProvider = ({ children }) => {
         }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
+      socket.off('connect');
       socket.off('me');
       socket.off('callUser');
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -72,30 +90,31 @@ const SocketContextProvider = ({ children }) => {
   }, []);
 
   const registerUser = (userId) => {
-    if(userId) {
-        socket.emit('register', userId);
-    }
+    if(userId) socket.emit('register', userId);
   };
 
-  const answerCall = () => {
+  const answerCall = async () => {
+    // Ask for camera NOW
+    const currentStream = await getMedia();
+    if(!currentStream) return;
+
     setCallAccepted(true);
     setIsReceivingCall(false);
 
-    // Initiator false = I am answering
     const peer = new Peer({ 
         initiator: false, 
         trickle: false, 
-        stream,
-        config: { iceServers } // Apply Fix
+        stream: currentStream,
+        config: { iceServers }
     });
 
     peer.on('signal', (data) => {
       socket.emit('answerCall', { signal: data, to: call.from });
     });
 
-    peer.on('stream', (currentStream) => {
+    peer.on('stream', (remoteStream) => {
       if (userVideo.current) {
-        userVideo.current.srcObject = currentStream;
+        userVideo.current.srcObject = remoteStream;
       }
     });
 
@@ -103,13 +122,16 @@ const SocketContextProvider = ({ children }) => {
     connectionRef.current = peer;
   };
 
-  const callUser = (id, type = 'video') => {
-    // Initiator true = I am calling
+  const callUser = async (id, type = 'video') => {
+    // Ask for camera NOW
+    const currentStream = await getMedia();
+    if(!currentStream) return;
+
     const peer = new Peer({ 
         initiator: true, 
         trickle: false, 
-        stream,
-        config: { iceServers } // Apply Fix
+        stream: currentStream,
+        config: { iceServers }
     });
 
     peer.on('signal', (data) => {
@@ -122,9 +144,9 @@ const SocketContextProvider = ({ children }) => {
       });
     });
 
-    peer.on('stream', (currentStream) => {
+    peer.on('stream', (remoteStream) => {
       if (userVideo.current) {
-        userVideo.current.srcObject = currentStream;
+        userVideo.current.srcObject = remoteStream;
       }
     });
 
@@ -138,8 +160,10 @@ const SocketContextProvider = ({ children }) => {
 
   const leaveCall = () => {
     setCallEnded(true);
-    if (connectionRef.current) {
-      connectionRef.current.destroy();
+    if (connectionRef.current) connectionRef.current.destroy();
+    // Stop local stream tracks to turn off camera light
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
     }
     window.location.reload();
   };
