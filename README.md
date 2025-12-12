@@ -28,8 +28,9 @@ Set up the Systemd service
 
 Start the app
 
+```
 bash <(curl -s https://raw.githubusercontent.com/JungleeAadmi/HausCall/main/install.sh)
-
+```
 
 ## 🔄 Updating
 
@@ -46,9 +47,9 @@ Pull the latest code from GitHub.
 Restore your database.
 
 Rebuild and restart the service.
-
+```
 bash <(curl -s https://raw.githubusercontent.com/JungleeAadmi/HausCall/main/update.sh)
-
+```
 ## ⚙️ Post-Install Configuration
 
 ## ***Nginx Proxy Manager (Required for HTTPS) *** 
